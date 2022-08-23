@@ -30,21 +30,21 @@ fn get_miller_rabin_parameters(p: u128) -> (u128, u128) {
 }
 
 pub fn is_prime(p: u128) -> bool {
+    // even number causes value of s to equal 0 and messes up innner loop
+    // by setting range to 0..-1
+    if p % 2 == 0 {
+        return false;
+    }
+
     //runs 128 Miller Rabin prime tests on a number and returns if it is prime
-    let reps = 10;
+    let reps = 128;
     let (s, d) = get_miller_rabin_parameters(p);
     let mut rng = rand::thread_rng();
 
-    println!("s={}, d={}", s, d);
-
-    for _i in 1..reps {
-        println!("i={}", _i);
+    'witness_loop: for _i in 1..reps {
         let a = rng.gen_range(2..(p-1));
         let mut x = exp(a, d, p);
-        let mut break_flag = false;
 
-        println!("a={}, d={}, p={}", a, d, p);
-        println!("x={}, p-1={}", x, p-1);
         if (x == 1) || (x == p - 1) {
             continue;
         }
@@ -52,40 +52,95 @@ pub fn is_prime(p: u128) -> bool {
         for _j in 0..(s-1) {
             x = (x * x) % p;
             if x == p - 1 {
-                break_flag = true;
-                break;
+                continue 'witness_loop;
             }
         }
-        if break_flag {
-            continue;
-        }
+
         return false;
     }
     return true;
 
 }
 
-// pub fn gen_prime(bits: u32) -> u128 {
+pub fn gen_safe_prime_pair(lower_bound:u128, upper_bound:u128) -> (u128, u128) {
+    // loop through numbers to get a prime p
+    // check if q = 2p + 1 is prime
+    // check if q = (p - 1) / 2 is prime
+    let new_lower_bound = if lower_bound % 2 == 0 {lower_bound + 1} else {lower_bound};
 
-// }
+    for n in (new_lower_bound..upper_bound).step_by(2) {
+        if (n % 3 == 0) || (n % 5 == 0) || (n % 7 == 0) {
+            continue;
+        }
+        if is_prime(n) {
+            let q = 2 * n + 1;
+            if is_prime(q) {
+                return (n, q);
+            }
+
+            let q = (n - 1) / 2;
+            if is_prime(q) {
+                return (q, n);
+            }
+        }
+    }
+    return (0, 0);
+}
 
 
 #[cfg(test)]
 mod tests {
+    // [TODO] set fixed random seed for tests
     use super::*;
 
+    // pow tests
     #[test]
-    fn test_pow() {
+    fn test_pow_1() {
         assert_eq!(exp(6,3,13), 8);
-
+    }
+    #[test]
+    fn test_pow_2() {
         assert_eq!(exp(62065077726107858, 696871303435469663, (1 << 31) - 1), 1432420130);
     }
 
+    // is_prime tests
     #[test]
-    fn test_is_prime() {
+    fn test_is_prime_1() {
         assert!(is_prime(13));
+    }
+    #[test]
+    fn test_is_prime_2() {
+        assert!(is_prime(7919));
+    }
+    #[test]
+    fn test_is_prime3() {
         assert!(is_prime((1 << 31) - 1));
-
-        assert!(!is_prime((1 << 31) - 3));
+    }
+    #[test]
+    fn test_is_prime_4() {
+        assert!(!is_prime(20));
+    }
+    #[test]
+    fn test_is_prime_5() {
+        assert!(!is_prime(378899));
+    }
+    #[test]
+    fn test_is_prime_6() {
+       assert!(!is_prime((1 << 31) - 3));
     }   
+
+    // gen_safe_prime_pair tests
+    #[test]
+    fn test_gen_safe_prime_pair_1() {
+        let (p, q) = gen_safe_prime_pair(64, 128);
+        println!("{}, {}", p, q);
+        assert_eq!((p, q), (83, 167));
+    }
+
+    #[test]
+    fn test_gen_safe_prime_pair_2() {
+        let (p, q) = gen_safe_prime_pair(256, 512);
+        println!("{}, {}", p, q);
+        assert_eq!((p, q), (131, 263));
+    }
 }
