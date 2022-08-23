@@ -1,7 +1,7 @@
 use rand::Rng;
 
 pub fn exp(g: u128, x: u128, p: u128) -> u128 {
-    // returns g^x mod p using fast exponentation
+    // returns g^x mod p using repeated squaring
     let mut odd_bits = 1;
     let mut base = g;
     let mut exponent = x;
@@ -55,7 +55,6 @@ pub fn is_prime(p: u128) -> bool {
                 continue 'witness_loop;
             }
         }
-
         return false;
     }
     return true;
@@ -63,9 +62,15 @@ pub fn is_prime(p: u128) -> bool {
 }
 
 pub fn gen_safe_prime_pair(lower_bound:u128, upper_bound:u128) -> (u128, u128) {
-    // loop through numbers to get a prime p
-    // check if q = 2p + 1 is prime
-    // check if q = (p - 1) / 2 is prime
+    // returns two numbers primes p, q such that 
+    // q = (p - 1) / 2
+    // p = 7 mod 8
+    
+    // 2 generates a group of order q in the field Fp
+
+    // p is know as a "safe prime"
+    // large precomputed values of this can be found here
+    // https://datatracker.ietf.org/doc/rfc3526/?include_text=1
     let new_lower_bound = if lower_bound % 2 == 0 {lower_bound + 1} else {lower_bound};
 
     for n in (new_lower_bound..upper_bound).step_by(2) {
@@ -74,12 +79,12 @@ pub fn gen_safe_prime_pair(lower_bound:u128, upper_bound:u128) -> (u128, u128) {
         }
         if is_prime(n) {
             let q = 2 * n + 1;
-            if is_prime(q) {
+            if (q % 8 == 7) && is_prime(q) {
                 return (n, q);
             }
 
             let q = (n - 1) / 2;
-            if is_prime(q) {
+            if (n % 8 == 7) && is_prime(q) {
                 return (q, n);
             }
         }
