@@ -63,12 +63,13 @@ pub fn prf(key: u128, x: u128) -> u128 {
     let mut key_bits = key;
     for _i in 0..128 {
         let (g0, g1) = prg(output);
-        if (key_bits & 0x1 == 0) {
+        if key_bits & 0x1 == 0 {
             output = g0;
         }
         else {
             output = g1;
         }
+        key_bits >>= 1;
     }
     return output;
 }
