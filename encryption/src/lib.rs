@@ -25,8 +25,8 @@ pub fn enc(sk: u128, message:&String) -> (Vec<u128>, u128) {
     for (i, c) in message.as_bytes().iter().enumerate() {
         buffer[i % 16] = *c;
 
-        // u128 / u8 = 16
-        if i % 16 == 15 {
+        // add a block if the buffer is full or end of message
+        if i % 16 == 15 || i == message.len() - 1 {
             let counter = initial_vector + ((i / 16) as u128);
             let pad = primitives::prf(sk, counter);
             let buffer_chars = u128::from_be_bytes(buffer);
@@ -41,14 +41,20 @@ pub fn enc(sk: u128, message:&String) -> (Vec<u128>, u128) {
 
 pub fn dec(sk:u128, ciphertext:&Vec<u128>, initial_vector:u128) -> String {
     let mut plaintext = String::new();
+
     for (i, c) in ciphertext.iter().enumerate() {
         let counter = initial_vector + (i as u128);
         let pad = primitives::prf(sk, counter);
         let plaintext_block = pad ^ c;
+
+        // push non null characters to plaintext
         for ascii_char in plaintext_block.to_be_bytes() {
-            plaintext.push(ascii_char as char);
+            if ascii_char != 0 {
+                plaintext.push(ascii_char as char);
+            }
         }
     }
+
     return plaintext;
 }
 
@@ -69,6 +75,30 @@ mod tests {
         let (ciphertext, initial_vector) = enc(sk, &message);
         let plaintext = dec(sk, &ciphertext, initial_vector);
 
+        assert_eq!(message, plaintext);
+    }
+
+    #[test]
+    fn test_correctness_2() {
+        let message = String::from("Hello");
+        
+        let sk = gen();
+        let (ciphertext, initial_vector) = enc(sk, &message);
+        let plaintext = dec(sk, &ciphertext, initial_vector);
+
+        println!("message: {}\nplaintext: {}", message, plaintext);
+        assert_eq!(message, plaintext);
+    }
+
+    #[test]
+    fn test_correctness_3() {
+        let message = String::from("The quick brown fox jumped over the lazy dog.");
+        
+        let sk = gen();
+        let (ciphertext, initial_vector) = enc(sk, &message);
+        let plaintext = dec(sk, &ciphertext, initial_vector);
+
+        println!("message: {}\nplaintext: {}", message, plaintext);
         assert_eq!(message, plaintext);
     }
 }
