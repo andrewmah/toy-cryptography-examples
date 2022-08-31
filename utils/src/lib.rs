@@ -118,7 +118,7 @@ mod tests {
         assert!(is_prime(7919));
     }
     #[test]
-    fn test_is_prime3() {
+    fn test_is_prime_3() {
         assert!(is_prime((1 << 31) - 1));
     }
     #[test]
