@@ -1,9 +1,9 @@
 # toy-cryptography
 
 ## Introduction
-**Disclaimer:** don't actually use this to encrypt anything important. I just found implementing these toy examples in code to be helpful in increasing my understanding of cryptographic primitives. The parameter settings are not intended to be secure.
+**Disclaimer:** don't actually use this to encrypt anything important. I just found implementing these toy examples in code to be helpful in increasing my understanding of cryptographic primitives. The parameter settings are not intended to be secure, and these constructions would not be used in practice because they are not the most efficient.
 
-The goal of this project is to show how to build a semantically secure symmetric encryption scheme from the hardness of a one-way function. The general roadmap is assume the existence of a one-way function and use that to construct subsequently more complex primitives
+The goal of this project is to show how to build a semantically secure symmetric encryption scheme from the hardness of *any* one-way function. The general roadmap is assume the existence of a one-way function and use that to construct subsequently more complex primitives
 - one-way function (OWF) ->
 - hardcore predicate (HCP) ->
 - pseudorandom generator (PRG) -> 
@@ -75,9 +75,16 @@ and this allows the adversary to get repeated guess at $x_i$ even if it gets $b(
 [TODO add full proof]
 
 ## Pseudo Random Generator (PRG)
-Blum Micali generator 
+### Definition
+
+### Blum Micali Construction 
+
 ## Pseduo Random Function (PRF)
-GGM construction
+### Definition
+$F$ is a **pseudorandom function** if for all PPT distinguishers $D$, there exists a negligible function $\epsilon(n)$ such that
+$$\left| \Pr\left[D^{F_k(\cdot)}(1^n) = 1\right] - \Pr\left[D^{f_n(\cdot)}(1^n) = 1\right]\right| \leq \epsilon(n)$$
+where $k\leftarrow \{0,1\}^n$ is chosen uniformly at random and $f_n$ is chosen uniformly at random from the set of function mapping $n$-bit strings to $n$-bit strings.
+### Goldreich Goldwasser Micali construction
 
 ## Sources
 Many thanks to these people for being great teachers and inspiring my interest in cryptography.

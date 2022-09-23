@@ -10,9 +10,8 @@ fn base_one_way_fn(x: u128) -> u128 {
 
 pub fn one_way_fn(x: u128) -> u128 {
     // modified OWF used for Goldreich Levin Theorem
-    //[TODO check this bit fiddling]
     let y1 = base_one_way_fn(x >> 64);
-    let y2 = ((x) as u64) as u128;
+    let y2 = (x as u64) as u128;
 
     return (y1 << 64) | y2;
 }
